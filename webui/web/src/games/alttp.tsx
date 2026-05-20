@@ -25,7 +25,7 @@ export function GameViewALTTP({ch, vm}: GameViewProps) {
     const historyTextarea = useRef(null);
 
     const [showASM, set_showASM] = useState(false);
-    const [code, set_code] = useState('A903 8F59F37E');
+    const asmTextAreaRef = useRef(null);
 
     const [runTimer, setrunTimer] = useState("");
 
@@ -283,14 +283,13 @@ export function GameViewALTTP({ch, vm}: GameViewProps) {
                     </label>
                 </div>
 
-                <textarea id="asm" cols={40} rows={3} value={code}
+                <textarea ref={asmTextAreaRef} cols={40} rows={3}
                           style="height: 3.8em"
                           title="enter 65816 opcodes in HEX format to execute"
-                          hidden={!showASM}
-                          onChange={e => set_code((e.target as HTMLTextAreaElement).value)}/>
+                          hidden={!showASM} />
                 <button hidden={!showASM}
                         disabled={!vm.snes.isConnected}
-                        onClick={e => sendGameCommand('asm', {code: code})}
+                        onClick={e => sendGameCommand('asm', {code: asmTextAreaRef?.current?.value})}
                 >Execute
                 </button>
 
