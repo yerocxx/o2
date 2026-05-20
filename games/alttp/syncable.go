@@ -3,10 +3,11 @@ package alttp
 import (
 	"encoding/binary"
 	"fmt"
-	"github.com/alttpo/snes/asm"
 	"log"
 	"o2/games"
 	"strings"
+
+	"github.com/alttpo/snes/asm"
 )
 
 func bin16_4(v uint16) string {
@@ -243,7 +244,12 @@ func (s *syncableBottle) LocalCheck(wramCurrent, wramPrevious []byte) (notificat
 	return
 }
 
-type syncableUnderworldOnUpdated func(s *syncableUnderworld, asm *asm.Emitter, initial, updated uint16)
+type syncableUnderworldOnUpdated func(
+	s *syncableUnderworld,
+	asm *asm.Emitter,
+	initial, updated uint16,
+	failLabel, nextLabel string,
+)
 
 type syncableUnderworld struct {
 	games.SyncableGame
@@ -392,7 +398,7 @@ func (s *syncableUnderworld) GenerateUpdate(newEmitter func() *asm.Emitter, inde
 	a.STA_long(longAddr)
 
 	if s.OnUpdated != nil {
-		s.OnUpdated(s, a, initial, updated)
+		s.OnUpdated(s, a, initial, updated, failLabel, nextLabel)
 	}
 
 	// write confirmation:
