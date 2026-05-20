@@ -1,5 +1,5 @@
 import {GameALTTPViewModel, GameViewProps, TimestampedNotification} from "../viewmodel";
-import {useEffect, useRef, useState} from "preact/hooks";
+import {useEffect, useLayoutEffect, useRef, useState} from "preact/hooks";
 import {Fragment} from "preact";
 import {setField} from "../util";
 
@@ -55,6 +55,9 @@ export function GameViewALTTP({ch, vm}: GameViewProps) {
             history = [];
         }
         setNotifHistory(history);
+    }, [vm["game/notification/history"]]);
+
+    useLayoutEffect(() => {
         // scroll to bottom:
         if (historyTextarea.current) {
             historyTextarea.current.scrollTop = historyTextarea.current.scrollHeight;
@@ -296,7 +299,7 @@ export function GameViewALTTP({ch, vm}: GameViewProps) {
                 </div>
                 <div style="grid-column: 1 / span 2; margin-top: 0.5em">
                     <div ref={historyTextarea}
-                         style="display: grid; grid-auto-rows: 18px; line-height: 18px; grid-template-columns: max-content; width: 100%; height: 7em; border: 1px solid red; background: #010; color: yellow; font-family: Rokkitt; font-size: 1.0em; overflow-y: scroll">
+                         style="display: grid; grid-auto-rows: 18px; line-height: 18px; grid-template-columns: max-content; width: 100%; height: 7em; padding-bottom: 1.1rem; border: 1px solid red; background: #010; color: yellow; font-family: Rokkitt; font-size: 1.0em; overflow-y: scroll">
                         {notifHistory.map(h => (<Fragment>
                             <span><span style="font-family: monospace; font-size: 0.8rem">{h.t}</span>&nbsp;&ndash;&nbsp;{h.m}</span>
                         </Fragment>))}
