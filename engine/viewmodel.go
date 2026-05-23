@@ -45,6 +45,7 @@ type ViewModel struct {
 	serverViewModel *ServerViewModel
 
 	config Config
+	configName string
 }
 
 type Config struct {
@@ -112,6 +113,14 @@ func (vm *ViewModel) NotifyView(view string, model interface{}) {
 	vn.NotifyView(view, viewModel)
 }
 
+func (vm *ViewModel) GetConfigName() string {
+	return vm.configName
+}
+
+func (vm *ViewModel) SetConfigName(configName string) {
+	vm.configName = configName
+}
+
 // initializes all view models:
 func (vm *ViewModel) Init() {
 	for _, model := range vm.viewModels {
@@ -141,9 +150,27 @@ func (vm *ViewModel) LoadConfiguration() bool {
 		log.Printf("viewmodel: loadConfiguration: could not find configuration directory: %v\n", err)
 		return false
 	}
-	path := filepath.Join(dir, "config.json")
+	defaultPath := filepath.Join(dir, "config.json")
 
-	b, err := ioutil.ReadFile(path)
+	name := vm.GetConfigName()
+
+	var b []byte
+	err = nil
+
+	// load from specified config location:
+	if name != "" {
+		config := "config-" + name + ".json"
+		path := filepath.Join(dir, config)
+		b, err = ioutil.ReadFile(path)
+		if err != nil {
+			// fall back to default config location:
+			log.Printf("viewmodel: loadConfiguration: could not find read custom configuration file: %v\n", err)
+			b, err = ioutil.ReadFile(defaultPath)
+		}
+	} else {
+		b, err = ioutil.ReadFile(defaultPath)
+	}
+	
 	if err != nil {
 		log.Printf("viewmodel: loadConfiguration: could not find read configuration file: %v\n", err)
 		return false
@@ -216,7 +243,16 @@ func (vm *ViewModel) SaveConfiguration() bool {
 		log.Printf("viewmodel: saveConfiguration: could not make directories along the path '%s': %v\n", dir, err)
 	}
 
-	path := filepath.Join(dir, "config.json")
+	name := vm.GetConfigName()
+	config := "config"
+
+	if name != "" {
+		config += ("-" + name)
+	}
+	
+	config += ".json"
+	
+	path := filepath.Join(dir, config)
 
 	err = ioutil.WriteFile(path, b, 0644)
 	if err != nil {
