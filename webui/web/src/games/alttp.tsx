@@ -299,7 +299,7 @@ export function GameViewALTTP({ch, vm}: GameViewProps) {
                 <div style="grid-column: 1 / span 2; margin-top: 0.5em">
                     <div ref={historyTextarea}
                          style="display: grid; grid-auto-rows: 18px; line-height: 18px; grid-template-columns: max-content; width: 100%; height: 7em; padding-bottom: 1.1rem; border: 1px solid red; background: #010; color: yellow; font-family: Rokkitt; font-size: 1.0em; overflow-y: scroll">
-                        {notifHistory.map(h => (<Fragment>
+                        {notifHistory.map((h, index) => (<Fragment key={index}>
                             <span><span style="font-family: monospace; font-size: 0.8rem">{h.t}</span>&nbsp;&ndash;&nbsp;{h.m}</span>
                         </Fragment>))}
                     </div>
