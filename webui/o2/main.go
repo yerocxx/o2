@@ -43,6 +43,7 @@ var (
 	listenPort  int    // port number to listen on for webserver
 	browserHost string // hostname to send as part of URL to browser to connect to webserver
 	browserUrl  string // full URL that is sent to browser (composed of browserHost:listenPort)
+	configName  string // save configuration data to a unique location
 	logPath     string
 )
 
@@ -99,9 +100,13 @@ func main() {
 	browserHost = env.GetOrDefault("O2_WEB_BROWSER_HOST", "127.0.0.1")
 	browserUrl = fmt.Sprintf("http://%s:%d/", browserHost, listenPort)
 
+	configName = env.GetOrDefault("O2_CONFIG_NAME", "");
+
 	// construct our viewModel:
 	viewModel := engine.NewViewModel()
 	viewModel.SetViewModel("o2", &O2ViewModel{Version: version})
+
+	viewModel.SetConfigName(configName)
 
 	// construct the web server:
 	webServer := NewWebServer(listenAddr)
