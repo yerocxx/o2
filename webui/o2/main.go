@@ -10,6 +10,7 @@ import (
 	"o2/util/env"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -29,6 +30,8 @@ import (
 	_ "o2/games"
 	_ "o2/games/alttp"
 )
+
+const defaultPort = 27637
 
 // build variables set via ldflags by goreleaser:
 var (
@@ -76,6 +79,25 @@ type O2ViewModel struct {
 	Version string `json:"version"`
 }
 
+func sanitizeConfigName(s string) string {
+		var invalidChars = regexp.MustCompile(`[^\p{L}\p{N}_-]+`)
+    result := invalidChars.ReplaceAllString(s, "_")
+    result = strings.Trim(result, "._-")
+    return result
+}
+
+func resolveConfigName(configName string, listenPort int) string {
+	if configName != "" {
+		return sanitizeConfigName(configName)
+	}
+
+	if listenPort != defaultPort {
+		return strconv.Itoa(listenPort)
+	}
+
+	return ""
+}
+
 func main() {
 	defer func() {
 		if err := recover(); err != nil {
@@ -88,19 +110,19 @@ func main() {
 	// Parse env vars:
 	listenHost = env.GetOrDefault("O2_WEB_LISTEN_HOST", "0.0.0.0")
 
-	listenPort, err = strconv.Atoi(env.GetOrDefault("O2_WEB_LISTEN_PORT", "27637"))
+	listenPort, err = strconv.Atoi(env.GetOrDefault("O2_WEB_LISTEN_PORT", strconv.Itoa(defaultPort)))
 	if err != nil {
-		listenPort = 27637
+		listenPort = defaultPort
 	}
 	if listenPort <= 0 {
-		listenPort = 27637
+		listenPort = defaultPort
 	}
 	listenAddr := net.JoinHostPort(listenHost, strconv.Itoa(listenPort))
 
 	browserHost = env.GetOrDefault("O2_WEB_BROWSER_HOST", "127.0.0.1")
 	browserUrl = fmt.Sprintf("http://%s:%d/", browserHost, listenPort)
 
-	configName = env.GetOrDefault("O2_CONFIG_NAME", "");
+	configName = resolveConfigName(env.GetOrDefault("O2_CONFIG_NAME", ""), listenPort);
 
 	// construct our viewModel:
 	viewModel := engine.NewViewModel()
