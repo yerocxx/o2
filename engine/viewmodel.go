@@ -3,7 +3,6 @@ package engine
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"o2/client"
 	"o2/games"
@@ -121,6 +120,17 @@ func (vm *ViewModel) SetConfigName(configName string) {
 	vm.configName = configName
 }
 
+func (vm *ViewModel) getConfigFilePath(dir string) string {
+	path := "config.json"
+	configName := vm.GetConfigName()
+
+	if configName != "" {
+		path = "config-" + configName + ".json"
+	}
+
+	return filepath.Join(dir, path)
+}
+
 // initializes all view models:
 func (vm *ViewModel) Init() {
 	for _, model := range vm.viewModels {
@@ -151,24 +161,16 @@ func (vm *ViewModel) LoadConfiguration() bool {
 		return false
 	}
 	defaultPath := filepath.Join(dir, "config.json")
-
-	name := vm.GetConfigName()
+	path := vm.getConfigFilePath(dir)
 
 	var b []byte
 	err = nil
 
-	// load from specified config location:
-	if name != "" {
-		config := "config-" + name + ".json"
-		path := filepath.Join(dir, config)
-		b, err = ioutil.ReadFile(path)
-		if err != nil {
-			// fall back to default config location:
-			log.Printf("viewmodel: loadConfiguration: could not find read custom configuration file: %v\n", err)
-			b, err = ioutil.ReadFile(defaultPath)
-		}
-	} else {
-		b, err = ioutil.ReadFile(defaultPath)
+	b, err = os.ReadFile(path)
+	if path != defaultPath && err != nil {
+		// fall back to default config location:
+		log.Printf("viewmodel: loadConfiguration: could not find read custom configuration file: %v\n", err)
+		b, err = os.ReadFile(defaultPath)
 	}
 	
 	if err != nil {
@@ -242,19 +244,10 @@ func (vm *ViewModel) SaveConfiguration() bool {
 	if err != nil {
 		log.Printf("viewmodel: saveConfiguration: could not make directories along the path '%s': %v\n", dir, err)
 	}
-
-	name := vm.GetConfigName()
-	config := "config"
-
-	if name != "" {
-		config += ("-" + name)
-	}
 	
-	config += ".json"
-	
-	path := filepath.Join(dir, config)
+	path := vm.getConfigFilePath(dir)
 
-	err = ioutil.WriteFile(path, b, 0644)
+	err = os.WriteFile(path, b, 0644)
 	if err != nil {
 		log.Printf("viewmodel: saveConfiguration: could not write configuration file '%s': %v\n", path, err)
 		return false
